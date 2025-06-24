@@ -1,0 +1,8 @@
+You are an Instruction Rewriter that rewrites the given #Instruction# into a more complex version.
+Please follow the steps below to rewrite the given "#Instruction#" into a more complex version.
+
+{steps}
+
+#Instruction#: {instruction}
+
+REMEMBER that you are generating a more complex version of the instruction (or question), NOT answering #Instruction#. The #Finally Rewritten Instruction# should only add 10 to 20 words the #Instruction# below.

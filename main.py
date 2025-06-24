@@ -2,6 +2,10 @@ import os, argparse, sys
 from dotenv import load_dotenv
 from auto_evol import AutoEvolInstruct
 
+def parse_key_value(item):
+    key, value = item.split('=', 1)
+    return {key:value}
+
 def get_config():
     parser = argparse.ArgumentParser()
 
@@ -14,7 +18,7 @@ def get_config():
     parser.add_argument(
         "--train-size",
         type=int,
-        default=20,
+        default=10,
         help="Size of data to join method optimization.",
     )
     parser.add_argument(
@@ -38,7 +42,7 @@ def get_config():
     parser.add_argument(
         "--max-steps",
         type=int,
-        default=10,
+        default=1,
         help="Maximum number of steps for method optimization.",
     )
     parser.add_argument(
@@ -54,12 +58,39 @@ def get_config():
         help="Number of optimizatied methods.(m in the paper)",
     )
     
+    parser.add_argument(
+        "--evol-llm-config",
+        type=str,
+        default="temperature=0 top_p=0 max_tokens=4096 timeout=120 max_retries=2",
+        nargs="+",
+        help="Configuration for the evolving LLM.",
+    )
+    
+    parser.add_argument(
+        "--optim-llm-config",
+        type=str,
+        default="temperature=0.6 top_p=0.95 max_tokens=4096 timeout=120 max_retries=2",
+        nargs="+",
+        help="Configuration for the optimizing LLM.",
+    )
+    
     return parser.parse_args()
 
 
 if __name__ == "__main__":
     load_dotenv()
     
+    # LLM Config 파싱
     config = get_config()
+    evol_llm_config = {}
+    for item in config.evol_llm_config.split():
+        evol_llm_config.update(parse_key_value(item))
+    optim_llm_config = {}
+    for item in config.optim_llm_config.split():
+        optim_llm_config.update(parse_key_value(item))
+    config.evol_llm_config = evol_llm_config
+    config.optim_llm_config = optim_llm_config
+
+    # AutoEvolInstruct 실행
     auto_evol = AutoEvolInstruct(config)
-    print(auto_evol.config)
+    auto_evol.run(config.max_steps)

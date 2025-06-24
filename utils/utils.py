@@ -1,4 +1,5 @@
 from datasets import load_dataset, Dataset
+from langchain_deepseek import ChatDeepSeek
 from typing import Tuple
 
 class CustomDataLoader:
@@ -48,4 +49,40 @@ class CustomDataLoader:
         dataset = load_dataset(self.data_path, split="train")
         return dataset
     
+def load_prompt_template(prompt_template_path: str) -> str:
+    """
+    Prompt template을 로드합니다.
+
+    Args:
+        prompt_template_path (str): Prompt template의 경로
+
+    Returns:
+        str: Prompt template
+    """
+    with open(prompt_template_path, "r") as f:
+        return f.read()
     
+
+def get_deepseek_llm(max_tokens: int, timeout: int, max_retries: int, temperature: float, top_p: float | None = None,) -> ChatDeepSeek:
+    """
+    DeepSeek LLM을 초기화합니다.
+    """
+    print(f"Loading DeepSeek LLM with temperature: {temperature}, top_p: {top_p}, max_tokens: {max_tokens}, timeout: {timeout}, max_retries: {max_retries}...")
+    if temperature == 0:
+        llm = ChatDeepSeek(
+            model="deepseek-chat",
+            temperature = 0,
+            max_tokens = max_tokens,
+            timeout = timeout,
+            max_retries = max_retries,
+        )
+    else:
+        llm = ChatDeepSeek(
+            model="deepseek-chat",
+            temperature = temperature,
+            top_p = top_p,
+            max_tokens = max_tokens,
+            timeout = timeout,
+            max_retries = max_retries,
+        )
+    return llm

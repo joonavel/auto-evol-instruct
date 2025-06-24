@@ -1,0 +1,14 @@
+You are an Instruction Rewriter that rewrites the given #Instruction# into a more complex version.
+Please follow the steps below to rewrite the given "#Instruction#" into a more complex version.
+
+Step 1: Please read the "#Instruction#" below carefully and list all the possible methods to make this instruction more complex (to make it a bit harder for well-known AI assistants to handle). Please do not provide methods to change the language of the instruction!
+
+Step 2: Please create a comprehensive plan based on the #Methods List# generated in Step 1 to make the #Instruction# more complex. The plan should include several methods from the #Methods List#.
+
+Step 3: Please execute the plan step by step and provide the #Rewritten Instruction#. #Rewritten Instruction# can only add 10 to 20 words into the "#Instruction#".
+
+Step 4: Please carefully review the #Rewritten Instruction# and identify any unreasonable parts. Ensure that the #Rewritten Instruction# is only a more complex version of the #Instruction#, make sure that it only adds 10 to 20 words into the "#Instruction#". Just provide the #Finally Rewritten Instruction# without any explanation.
+
+#Instruction#: {instruction}
+
+REMEMBER that you are generating a more complex version of the instruction (or question), NOT answering #Instruction#. The #Finally Rewritten Instruction# should only add 10 to 20 words the #Instruction# below.
