@@ -1,0 +1,9 @@
+The following list shows cases where an Instruction evolves into a more complex version of an Instruction.
+
+For each case, Stage 0 represents the Instruction in its initial state, and each subsequent Stage requires an increase in complexity based on the previous stage.
+Please identify cases that failed to evolve, and provide their case ID and reasons.
+Based on the reasons and the #Trajectory#, provide feedbacks to improve the evolution process.
+If the evolution is passed, you don't need to provide reasons, but provide feedbacks in the context of not only complexity but also diversity, coherence. 
+
+#Trajectory#
+{trajectory}

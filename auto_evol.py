@@ -1,6 +1,7 @@
 from utils.utils import CustomDataLoader, get_deepseek_llm
 from datasets import Dataset
 from components.evolver.instruction_evolver import InstructionEvolver
+from components.analyzer.trajectory_analyzer import TrajectoryAnalyzer
 
 from typing import Tuple, List
 import json
@@ -36,6 +37,12 @@ class AutoEvolInstruct:
         else:
             return evolver._iterative_evolve()
 
+    def analyze_trajectory(self, trajectory : List[List[str]]) -> Tuple[str, str | None]:
+        analyzer = TrajectoryAnalyzer(
+            llm=get_deepseek_llm(temperature=0.6, top_p=0.95, max_tokens=4096, timeout=120, max_retries=2),
+        )
+        return analyzer.analyze(trajectory)
+
     def run(self, max_step):
         train_dataset, dev_dataset = self.load_data_for_auto_evol()
         for step in range(max_step):
@@ -44,10 +51,10 @@ class AutoEvolInstruct:
             else:
                 trajectory = self.evolve_instruction(train_dataset, is_initial=False)
         
-        result = trajectory
-        # 결과를 파일로 작성
-        with open(f"temp_result.json", "w") as f:
-            json.dump(result, f)
+        result, feedback = self.analyze_trajectory(trajectory)
+        print(result)
+        print(feedback)
+        
         
 
 # 1. 데이터 준비
