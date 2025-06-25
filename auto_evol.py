@@ -2,6 +2,7 @@ from utils.utils import CustomDataLoader, get_deepseek_llm
 from datasets import Dataset
 from components.evolver.instruction_evolver import InstructionEvolver
 from components.analyzer.trajectory_analyzer import TrajectoryAnalyzer
+from components.optimizer.method_optimizer import MethodOptimizer
 
 from typing import Tuple, List
 import json
@@ -15,6 +16,7 @@ class AutoEvolInstruct:
             dev_size=config.dev_size,
             seed=config.seed,
         )
+        self.current_method = None
         
     def load_data_for_auto_evol(self) -> Tuple[Dataset, Dataset]:
         train_dataset, dev_dataset = self.data_loader.get_train_and_dev()
@@ -42,18 +44,41 @@ class AutoEvolInstruct:
             llm=get_deepseek_llm(temperature=0.6, top_p=0.95, max_tokens=4096, timeout=120, max_retries=2),
         )
         return analyzer.analyze(trajectory)
+    
+    def optimize_method(self, method: str, feedback: str, is_initial: bool = True) -> List[str] | None:
+        optimizer = MethodOptimizer(
+            llm=get_deepseek_llm(temperature=0.6, top_p=0.95, max_tokens=4096, timeout=120, max_retries=2),
+            candidate_size=self.config.candidate_size,
+        )
+        return optimizer.optimize(method, feedback, is_initial=is_initial)
 
     def run(self, max_step):
         train_dataset, dev_dataset = self.load_data_for_auto_evol()
         for step in range(max_step):
+            # Instruction Evolution
             if step == 0:
                 trajectory = self.evolve_instruction(train_dataset, is_initial=True)
             else:
                 trajectory = self.evolve_instruction(train_dataset, is_initial=False)
+            # Trajectory Analysis
+            result, feedback = self.analyze_trajectory(trajectory)
+            print(result)
+            print(feedback)
+            if result == "Error":
+                return
+            # Method Optimization
+            if step == 0:
+                candidate_methods = self.optimize_method(None, feedback, is_initial=True)
+            else:
+                candidate_methods = self.optimize_method(self.current_method, feedback, is_initial=False)
+            print(candidate_methods)
+            if candidate_methods is None:
+                return
+            # Method Selection
+            
+            
+            
         
-        result, feedback = self.analyze_trajectory(trajectory)
-        print(result)
-        print(feedback)
         
         
 

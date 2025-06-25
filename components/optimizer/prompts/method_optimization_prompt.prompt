@@ -1,0 +1,27 @@
+#Current Method#
+{current_method}
+
+#Feedback#
+{feedback}
+
+referring to the feedback, provide the optimized method in the following format.
+
+```Optimized Method
+Step 1:
+#Methods List#
+Describe how to generate a list of methods to make instructions more complex.
+
+Step 2:
+#Plan#
+Explain how to create a comprehensive plan based on the Methods List
+
+[Note]Add more steps here as you want to achieve the best method. The steps should align with the instruction domain/topic, and should not involve any tools or visualization, it should be text-only methods. The last step should always be #Finally Rewritten Instruction#.
+
+Step N-1:
+#Rewritten Instruction#
+Do not generate new Instruction here, but please provide a detailed the process of executing the plan to rewrite the instruction. You are generating a guide to write a better instruction, NOT THE INSTRUCTION ITSELF.
+
+Step N:
+#Finally Rewritten Instruction#
+Do not generate new Instruction here, but please provide the process to write the final rewritten instruction. You are generating a guide to write a better instruction, NOT THE INSTRUCTION ITSELF.
+```
