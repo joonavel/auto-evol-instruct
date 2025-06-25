@@ -4,7 +4,7 @@ from components.evolver.instruction_evolver import InstructionEvolver
 from components.analyzer.trajectory_analyzer import TrajectoryAnalyzer
 from components.optimizer.method_optimizer import MethodOptimizer
 
-from typing import Tuple, List
+from typing import Tuple, List, Optional
 import json
 
 class AutoEvolInstruct:
@@ -26,7 +26,7 @@ class AutoEvolInstruct:
         instruction_dataset = self.data_loader.get_instruction_data()
         return instruction_dataset
     
-    def evolve_instruction(self, train_dataset, is_initial=True) -> List[List[str]]:
+    def evolve_instruction(self, train_dataset, is_initial=True, current_method: Optional[str] = None) -> List[List[str]]:
         evolver = InstructionEvolver(
             llm=get_deepseek_llm(temperature=0, max_tokens=4096, timeout=120, max_retries=2),
             train_dataset=train_dataset,
@@ -34,10 +34,7 @@ class AutoEvolInstruct:
             loop=self.config.loop,
             batch_size=self.config.batch_size,
         )
-        if is_initial:
-            return evolver._initial_evolve()
-        else:
-            return evolver._iterative_evolve()
+        return evolver.evolve(is_initial=is_initial, current_method=current_method)
 
     def analyze_trajectory(self, trajectory : List[List[str]]) -> Tuple[str, str | None]:
         analyzer = TrajectoryAnalyzer(

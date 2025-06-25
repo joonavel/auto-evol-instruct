@@ -45,7 +45,7 @@ class TrajectoryAnalyzer(BaseAnalyzer):
         prompt = ChatPromptTemplate(
             [
                 ("system", self.system_prompt),
-                ("user", self.trajectory_analysis_prompt + self.korean_tail),
+                ("user", self.trajectory_analysis_prompt),
             ]
         )
         chain = prompt | analyzer
