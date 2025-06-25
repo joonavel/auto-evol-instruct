@@ -24,7 +24,7 @@ def get_config():
     parser.add_argument(
         "--dev-size",
         type=int,
-        default=50,
+        default=10,
         help="Size of data to join method validation",
     )
     parser.add_argument(

@@ -22,11 +22,11 @@ class IterativeEvolution(BaseModel):
 
 
 class InstructionEvolver(BaseEvolver):
-    def __init__(self, llm, train_dataset, train_size, loop, batch_size):
+    def __init__(self, llm, dataset, ds_size, loop, batch_size):
         super().__init__()
         self.llm = llm
-        self.train_dataset = train_dataset
-        self.train_size = train_size
+        self.dataset = dataset
+        self.ds_size = ds_size
         self.loop = loop
         self.batch_size = batch_size
         self.system_prompt = load_prompt_template(
@@ -51,12 +51,12 @@ class InstructionEvolver(BaseEvolver):
         # 답변을 모아둘 곳
         outputs = []
         # 배치 사이즈만큼 데이터를 나누어서 처리
-        for k in tqdm(range(0, self.train_size, self.batch_size), desc="Evolving..."):
+        for k in tqdm(range(0, self.ds_size, self.batch_size), desc="Evolving..."):
             # 마지막 배치 처리
-            if k + self.batch_size > self.train_size:
-                instructions = self.train_dataset['instruction'][k:]
+            if k + self.batch_size > self.ds_size:
+                instructions = self.dataset['instruction'][k:]
             else:
-                instructions = self.train_dataset['instruction'][k:k+self.batch_size]
+                instructions = self.dataset['instruction'][k:k+self.batch_size]
             
             # 배치 입력 생성
             batch_input = [{"instruction": instruction} for instruction in instructions]
@@ -92,12 +92,12 @@ class InstructionEvolver(BaseEvolver):
         # 답변을 모아둘 곳
         outputs = []
         # 배치 사이즈만큼 데이터를 나누어서 처리
-        for k in tqdm(range(0, self.train_size, self.batch_size), desc="Evolving..."):
+        for k in tqdm(range(0, self.ds_size, self.batch_size), desc="Evolving..."):
             # 마지막 배치 처리
-            if k + self.batch_size > self.train_size:
-                instructions = self.train_dataset['instruction'][k:]
+            if k + self.batch_size > self.ds_size:
+                instructions = self.dataset['instruction'][k:]
             else:
-                instructions = self.train_dataset['instruction'][k:k+self.batch_size]
+                instructions = self.dataset['instruction'][k:k+self.batch_size]
             
             # 배치 입력 생성
             batch_input = [{"steps": current_method, "instruction": instruction} for instruction in instructions]
@@ -126,3 +126,26 @@ class InstructionEvolver(BaseEvolver):
             return self._initial_evolve()
         else:
             return self._iterative_evolve(current_method)
+        
+    def evolve_train(self, current_method: str):
+        evolver = self.llm.with_structured_output(IterativeEvolution)
+        prompt = ChatPromptTemplate(
+            [
+                ("system", self.system_prompt),
+                ("user", self.iterative_evolving_method + self.korean_tail),
+            ]
+        )
+        chain = prompt | evolver
+        
+        outputs = []
+        for k in tqdm(range(0, self.ds_size, self.batch_size)):
+            if k + self.batch_size > self.ds_size:
+                instructions = self.dataset['instruction'][k:]
+            else:
+                instructions = self.dataset['instruction'][k:k+self.batch_size]
+            batch_input = [{"steps": current_method, "instruction": instruction} for instruction in instructions]
+            batch_output = chain.batch(batch_input)
+            responses = [output.finally_rewritten_instruction for output in batch_output]
+            outputs.extend(responses)
+        
+        return outputs

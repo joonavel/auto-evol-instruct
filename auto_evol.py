@@ -3,6 +3,7 @@ from datasets import Dataset
 from components.evolver.instruction_evolver import InstructionEvolver
 from components.analyzer.trajectory_analyzer import TrajectoryAnalyzer
 from components.optimizer.method_optimizer import MethodOptimizer
+from components.generator.response_generator import ResponseGenerator
 
 from typing import Tuple, List, Optional
 import json
@@ -29,8 +30,8 @@ class AutoEvolInstruct:
     def evolve_instruction(self, train_dataset, is_initial=True, current_method: Optional[str] = None) -> List[List[str]]:
         evolver = InstructionEvolver(
             llm=get_deepseek_llm(temperature=0, max_tokens=4096, timeout=120, max_retries=2),
-            train_dataset=train_dataset,
-            train_size=self.config.train_size,
+            dataset=train_dataset,
+            ds_size=self.config.train_size,
             loop=self.config.loop,
             batch_size=self.config.batch_size,
         )
@@ -49,6 +50,38 @@ class AutoEvolInstruct:
         )
         return optimizer.optimize(method, feedback, is_initial=is_initial)
 
+    def validate_method(self, dev_dataset, candidate_methods: List[str]):
+        # instruction evolving을 진행할 llm
+        evolver = InstructionEvolver(
+            llm=get_deepseek_llm(temperature=0, max_tokens=4096, timeout=120, max_retries=2),
+            dataset=dev_dataset,
+            ds_size=self.config.dev_size,
+            loop=self.config.loop,
+            batch_size=self.config.batch_size,
+        )
+        # 각 candidate method에 대해서 instruction evolving을 진행하고, 그 결과를 2차원 리스트로 저장
+        dev_instructions_2d = []
+        for method in candidate_methods:
+            dev_output = evolver.evolve_train(method)
+            dev_instructions_2d.append(dev_output)
+        
+        # Instruction에 대한 답변을 생성할 llm
+        responser = ResponseGenerator(
+            llm=get_deepseek_llm(temperature=0, max_tokens=4096, timeout=120, max_retries=2),
+            ds_size=self.config.dev_size,
+            batch_size=self.config.batch_size,
+        )
+        # 각 candidate method에 대해서 답변 생성을 진행
+        scores = []
+        for dev_instructions in dev_instructions_2d:
+            responses = responser.generate(dev_instructions)
+            print(responses)
+            # 답변 중 오류율을 validator를 이용해 계산 후 저장
+            break
+        
+        # 오류율이 최저인 candidate method를 선택하여 return
+        return 'OK'
+        
     def run(self, max_step):
         train_dataset, dev_dataset = self.load_data_for_auto_evol()
         for step in range(max_step):
@@ -72,7 +105,7 @@ class AutoEvolInstruct:
             if candidate_methods is None:
                 return
             # Method Selection
-            
+            print(self.validate_method(dev_dataset, candidate_methods))
             
             
         
