@@ -4,6 +4,7 @@ from components.evolver.instruction_evolver import InstructionEvolver
 from components.analyzer.trajectory_analyzer import TrajectoryAnalyzer
 from components.optimizer.method_optimizer import MethodOptimizer
 from components.generator.response_generator import ResponseGenerator
+from components.validator.response_validator import ResponseValidator
 
 from typing import Tuple, List, Optional
 import json
@@ -71,16 +72,16 @@ class AutoEvolInstruct:
             ds_size=self.config.dev_size,
             batch_size=self.config.batch_size,
         )
+        validator = ResponseValidator(ds_size=self.config.dev_size)
         # 각 candidate method에 대해서 답변 생성을 진행
         scores = []
         for dev_instructions in dev_instructions_2d:
             responses = responser.generate(dev_instructions)
-            print(responses)
             # 답변 중 오류율을 validator를 이용해 계산 후 저장
-            break
-        
+            score = validator.validate(responses)
+            scores.append(score)
         # 오류율이 최저인 candidate method를 선택하여 return
-        return 'OK'
+        return candidate_methods[scores.index(min(scores))]
         
     def run(self, max_step):
         train_dataset, dev_dataset = self.load_data_for_auto_evol()
@@ -101,12 +102,12 @@ class AutoEvolInstruct:
                 candidate_methods = self.optimize_method(None, feedback, is_initial=True)
             else:
                 candidate_methods = self.optimize_method(self.current_method, feedback, is_initial=False)
-            print(candidate_methods)
             if candidate_methods is None:
                 return
             # Method Selection
-            print(self.validate_method(dev_dataset, candidate_methods))
-            
+            best_method = self.validate_method(dev_dataset, candidate_methods)
+            self.current_method = best_method
+            print(f"Step {step} : {best_method}")
             
         
         

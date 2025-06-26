@@ -1,6 +1,7 @@
 import os, argparse, sys
 from dotenv import load_dotenv
 from auto_evol import AutoEvolInstruct
+import logging
 
 def parse_key_value(item):
     key, value = item.split('=', 1)
@@ -90,6 +91,9 @@ if __name__ == "__main__":
         optim_llm_config.update(parse_key_value(item))
     config.evol_llm_config = evol_llm_config
     config.optim_llm_config = optim_llm_config
+    
+    # logging 설정
+    logging.basicConfig(filename="evol_log.log", filemode="w", level=logging.INFO)
 
     # AutoEvolInstruct 실행
     auto_evol = AutoEvolInstruct(config)
