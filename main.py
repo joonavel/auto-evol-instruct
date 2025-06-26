@@ -43,7 +43,7 @@ def get_config():
     parser.add_argument(
         "--max-steps",
         type=int,
-        default=1,
+        default=2,
         help="Maximum number of steps for method optimization.",
     )
     parser.add_argument(
@@ -97,4 +97,5 @@ if __name__ == "__main__":
 
     # AutoEvolInstruct 실행
     auto_evol = AutoEvolInstruct(config)
-    auto_evol.run(config.max_steps)
+    evolved_method = auto_evol.run_auto_evol(config.max_steps)
+    # auto_evol.run_evol_instruct(evolved_method)

@@ -98,6 +98,7 @@ class InstructionEvolver(BaseEvolver):
             
             # 배치 출력 모으기
             outputs.extend(batch_outputs)
+        logging.info(f"Evolution Loop output length: {len(outputs)}")
         return outputs
         
     def _iterative_evolve(self, current_method: str) -> List[List[str]]:
@@ -130,7 +131,7 @@ class InstructionEvolver(BaseEvolver):
                 for _ in tqdm(range(self.loop), desc="In the batch..."):
                     batch_output = chain.batch(batch_input)
                     responses = [output.finally_rewritten_instruction for output in batch_output]
-                    batch_input = [{"instruction": response} for response in responses]
+                    batch_input = [{"steps": current_method, "instruction": response} for response in responses]
                     for i, response in enumerate(responses):
                         batch_outputs[i].append(response)
             except Exception as e:

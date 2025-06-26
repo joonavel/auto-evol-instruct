@@ -51,7 +51,9 @@ class TrajectoryAnalyzer(BaseAnalyzer):
         chain = prompt | analyzer
         whole_trajectory = self.preprocess_trajectory(trajectory)
         print("Trajectory Analysis has started...")
+        logging.info(f"Whole Trajectory : \n{whole_trajectory}")
         feedback = chain.invoke({"trajectory": whole_trajectory})
+        logging.info(f"Trajectory Analysis Result : \n{feedback}")
         print("Trajectory Analysis has finished.")
         try:
             if feedback.response.result:

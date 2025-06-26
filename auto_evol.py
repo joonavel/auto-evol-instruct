@@ -8,6 +8,7 @@ from components.validator.response_validator import ResponseValidator
 
 from typing import Tuple, List, Optional
 import json
+import logging
 
 class AutoEvolInstruct:
     def __init__(self, config):
@@ -83,18 +84,21 @@ class AutoEvolInstruct:
         # 오류율이 최저인 candidate method를 선택하여 return
         return candidate_methods[scores.index(min(scores))]
         
-    def run(self, max_step):
+    def run_auto_evol(self, max_step):
         train_dataset, dev_dataset = self.load_data_for_auto_evol()
         for step in range(max_step):
+            logging.info(f"Auto Evolution Step {step} has started.")
             # Instruction Evolution
             if step == 0:
+                logging.info(f"Enter Initial Evolution\nCurrent Method : None")
                 trajectory = self.evolve_instruction(train_dataset, is_initial=True)
             else:
-                trajectory = self.evolve_instruction(train_dataset, is_initial=False)
+                logging.info(f"Enter Iterative Evolution\nCurrent Method : {self.current_method}")
+                trajectory = self.evolve_instruction(train_dataset, is_initial=False, current_method=self.current_method)
             # Trajectory Analysis
             result, feedback = self.analyze_trajectory(trajectory)
-            print(result)
-            print(feedback)
+            logging.info(f"Step {step} : Trajectory Analysis Result: \n{result}")
+            logging.info(f"Step {step} : Feedback : \n{feedback}\n")
             if result == "Error":
                 return
             # Method Optimization
@@ -107,36 +111,15 @@ class AutoEvolInstruct:
             # Method Selection
             best_method = self.validate_method(dev_dataset, candidate_methods)
             self.current_method = best_method
-            print(f"Step {step} : {best_method}")
-            
+            logging.info(f"Step {step} : Best Method : \n{best_method}\n")
+        return self.current_method
+    
+    def run_evol_instruct(self, method: str):
+        instruction_dataset = self.load_data_for_instruction_evolution()
+        # Instruction Evolution
         
+        # Response Generation
         
+        # Post-processing
         
-
-# 1. 데이터 준비
-
-## 데이터 불러오기
-
-## Train, Dev 분리
-
-# 2. Auto Evolving for Method
-
-## initial evolution
-# TODO
-## trajectory analysis
-
-## response generation
-
-## validation
-
-## repeat for set number of times
-
-# 3. Instruction Evolution
-
-## Evolving
-
-## Answer Generation
-
-## Post-processing
-
-# 4. 결과 저장
+        # Saving
