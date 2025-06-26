@@ -2,7 +2,7 @@ from .base_evolver import BaseEvolver
 from utils.utils import load_prompt_template
 
 from pydantic import BaseModel, Field
-from typing import List, Optional
+from typing import List, Optional, Any
 from langchain_core.prompts import ChatPromptTemplate
 import logging
 from tqdm import tqdm
@@ -39,8 +39,28 @@ class InstructionEvolver(BaseEvolver):
             "components/evolver/prompts/iterative_evolving_method.prompt"
         )
         
+    def handle_parsing_error(self, instructions: List[str], batch_output: List[Any]) -> List[str]:
+        """
+        LLM이 출력한 output에서 Parsing error가 발생한 경우, 원본 instruction을 반환하고, 그렇지 않은 경우, 정상 출력을 반환
+
+        Args:
+            instructions (List[str]): evolving 대상 instruction
+            batch_output (List[Any]): LLM이 출력한 evolving 결과 instructions
+
+        Returns:
+            List[str]: evolving 결과 instructions
+        """
+        temp = []
+        for idx, output in enumerate(batch_output):
+            if output['parsing_error']:
+                temp.append(instructions[idx])
+                logging.error(f"Parsing error at InstructionEvolution.\n{output['raw'].additional_kwargs['tool_calls'][0]['function']['arguments']}")
+            else:
+                temp.append(output['parsed'].finally_rewritten_instruction)
+        return temp
+    
     def _initial_evolve(self) -> List[List[str]]:
-        evolver = self.llm.with_structured_output(InitialEvolution)
+        evolver = self.llm.with_structured_output(InitialEvolution, include_raw=True)
         prompt = ChatPromptTemplate(
             [
                 ("system", self.system_prompt),
@@ -61,14 +81,14 @@ class InstructionEvolver(BaseEvolver):
             # 배치 입력 생성
             batch_input = [{"instruction": instruction} for instruction in instructions]
             
-            # 배치 출력 초기화(배치 크기 만큼)
+            # 배치 출력 저장소 초기화(배치 크기 만큼)
             batch_outputs = [[x] for x in instructions]
             
             try:
                 # 하나의 method로 반복 evolving
                 for _ in tqdm(range(self.loop), desc="In the batch..."):
                     batch_output = chain.batch(batch_input)
-                    responses = [output.finally_rewritten_instruction for output in batch_output]
+                    responses = self.handle_parsing_error(instructions, batch_output)
                     batch_input = [{"instruction": response} for response in responses]
                     for i, response in enumerate(responses):
                         batch_outputs[i].append(response)
