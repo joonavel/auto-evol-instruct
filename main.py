@@ -19,13 +19,13 @@ def get_config():
     parser.add_argument(
         "--train-size",
         type=int,
-        default=10,
+        default=20,
         help="Size of data to join method optimization.",
     )
     parser.add_argument(
         "--dev-size",
         type=int,
-        default=10,
+        default=50,
         help="Size of data to join method validation",
     )
     parser.add_argument(
@@ -43,7 +43,7 @@ def get_config():
     parser.add_argument(
         "--max-steps",
         type=int,
-        default=2,
+        default=3,
         help="Maximum number of steps for method optimization.",
     )
     parser.add_argument(

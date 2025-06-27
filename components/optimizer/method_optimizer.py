@@ -48,7 +48,6 @@ class MethodOptimizer(BaseOptimizer):
         try:
             opt_result = chain.batch([{"current_method": method, "feedback": feedback}]*self.candidate_size)
             candidate_methods = [result.optimized_method for result in opt_result]
-            print(f"Optimization has finished.")
             return candidate_methods
         except Exception as e:
             logging.error(f"Error in optimizing method: {e}")

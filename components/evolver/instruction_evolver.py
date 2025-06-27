@@ -71,7 +71,7 @@ class InstructionEvolver(BaseEvolver):
         # 답변을 모아둘 곳
         outputs = []
         # 배치 사이즈만큼 데이터를 나누어서 처리
-        for k in tqdm(range(0, self.ds_size, self.batch_size), desc="Evolving..."):
+        for k in tqdm(range(0, self.ds_size, self.batch_size), desc="Initial Evolution Loop..."):
             # 마지막 배치 처리
             if k + self.batch_size > self.ds_size:
                 instructions = self.dataset['instruction'][k:]
@@ -86,7 +86,7 @@ class InstructionEvolver(BaseEvolver):
             
             try:
                 # 하나의 method로 반복 evolving
-                for _ in tqdm(range(self.loop), desc="In the batch..."):
+                for _ in tqdm(range(self.loop), desc=f"Batch {k}~{k+self.batch_size} Loop..."):
                     batch_output = chain.batch(batch_input)
                     responses = self.handle_parsing_error(instructions, batch_output)
                     batch_input = [{"instruction": response} for response in responses]
@@ -113,7 +113,7 @@ class InstructionEvolver(BaseEvolver):
         # 답변을 모아둘 곳
         outputs = []
         # 배치 사이즈만큼 데이터를 나누어서 처리
-        for k in tqdm(range(0, self.ds_size, self.batch_size), desc="Evolving..."):
+        for k in tqdm(range(0, self.ds_size, self.batch_size), desc="Iterative Evolution Loop..."):
             # 마지막 배치 처리
             if k + self.batch_size > self.ds_size:
                 instructions = self.dataset['instruction'][k:]
@@ -128,7 +128,7 @@ class InstructionEvolver(BaseEvolver):
             
             try:
                 # 하나의 method로 반복 evolving
-                for _ in tqdm(range(self.loop), desc="In the batch..."):
+                for _ in tqdm(range(self.loop), desc=f"Batch {k}~{k+self.batch_size} Loop..."):
                     batch_output = chain.batch(batch_input)
                     responses = [output.finally_rewritten_instruction for output in batch_output]
                     batch_input = [{"steps": current_method, "instruction": response} for response in responses]
@@ -159,7 +159,7 @@ class InstructionEvolver(BaseEvolver):
         chain = prompt | evolver
         
         outputs = []
-        for k in tqdm(range(0, self.ds_size, self.batch_size)):
+        for k in tqdm(range(0, self.ds_size, self.batch_size), desc="Instruction Evolving..."):
             if k + self.batch_size > self.ds_size:
                 instructions = self.dataset['instruction'][k:]
             else:

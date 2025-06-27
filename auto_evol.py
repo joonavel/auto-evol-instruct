@@ -63,8 +63,9 @@ class AutoEvolInstruct:
         )
         # 각 candidate method에 대해서 instruction evolving을 진행하고, 그 결과를 2차원 리스트로 저장
         dev_instructions_2d = []
-        for method in candidate_methods:
+        for idx, method in enumerate(candidate_methods):
             dev_output = evolver.evolve_once(method)
+            logging.info(f"Dev Instructions has been evolved with {idx}th candidate method.")
             dev_instructions_2d.append(dev_output)
         
         # Instruction에 대한 답변을 생성할 llm
@@ -84,9 +85,13 @@ class AutoEvolInstruct:
         # 오류율이 최저인 candidate method를 선택하여 return
         return candidate_methods[scores.index(min(scores))]
     
-    def save_evolution_result(self, instructions: List[str], responses: List[str]):
+    def save_evolution_result(self, parent_dataset, instructions: List[str], responses: List[str]):
         with open("evolution_result.json", "w") as f:
-            json.dump({"instructions": instructions, "responses": responses}, f)
+            json.dump({"instruction": instructions,
+                       "response": responses,
+                       "root": parent_dataset["instruction"],
+                       "reference": parent_dataset["root"]}, f)
+        return
         
     def run_auto_evol(self, max_step):
         train_dataset, dev_dataset = self.load_data_for_auto_evol()
@@ -104,6 +109,7 @@ class AutoEvolInstruct:
             logging.info(f"Step {step} : Trajectory Analysis Result: \n{result}")
             logging.info(f"Step {step} : Feedback : \n{feedback}\n")
             if result == "Error":
+                logging.error("Trajectory Analysis Result is Error. Please check the trajectory.")
                 return
             # Method Optimization
             if step == 0:
@@ -111,6 +117,7 @@ class AutoEvolInstruct:
             else:
                 candidate_methods = self.optimize_method(self.current_method, feedback, is_initial=False)
             if candidate_methods is None:
+                logging.error("Candidate Methods are None. Please check the candidate size.")
                 return
             # Method Selection
             best_method = self.validate_method(dev_dataset, candidate_methods)
@@ -143,6 +150,6 @@ class AutoEvolInstruct:
         )
         responses = responser.generate_with_fix(child_instructions)
         # Saving
-        self.save_evolution_result(child_instructions, responses)
+        self.save_evolution_result(instruction_dataset, child_instructions, responses)
         logging.info(f"Evolution Result has been saved.")
         return

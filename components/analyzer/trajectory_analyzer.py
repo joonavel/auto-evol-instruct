@@ -3,7 +3,6 @@ from langchain_core.prompts import ChatPromptTemplate
 from utils.utils import load_prompt_template
 
 import logging
-from tqdm import tqdm
 from pydantic import BaseModel, Field
 from typing import Dict, Union, List, Tuple
 
@@ -51,10 +50,13 @@ class TrajectoryAnalyzer(BaseAnalyzer):
         chain = prompt | analyzer
         whole_trajectory = self.preprocess_trajectory(trajectory)
         print("Trajectory Analysis has started...")
-        logging.info(f"Whole Trajectory : \n{whole_trajectory}")
+        if whole_trajectory:
+            logging.info(f"Whole Trajectory : \n{whole_trajectory}")
+        else:
+            logging.warning("No trajectory Detected.")
         feedback = chain.invoke({"trajectory": whole_trajectory})
         logging.info(f"Trajectory Analysis Result : \n{feedback}")
-        print("Trajectory Analysis has finished.")
+
         try:
             if feedback.response.result:
                 logging.info(f"Current method is suitable for the evolution process.")
