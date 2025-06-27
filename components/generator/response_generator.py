@@ -19,6 +19,8 @@ class ResponseGenerator(BaseGenerator):
         self.batch_size = batch_size
         self.system_prompt = load_prompt_template("components/generator/prompts/system_prompt.prompt")
         self.response_prompt = load_prompt_template("components/generator/prompts/response_prompt.prompt")
+        self.REPLACEMENT_CHAR = '\uFFFD'
+        self.FAILURE_RESPONSE = 'IDK'
         
     def generate_response(self, instructions: str) -> str:
         responser = self.llm.with_structured_output(ResponseResult)
@@ -41,3 +43,10 @@ class ResponseGenerator(BaseGenerator):
     
     def generate(self, instructions: List[str]) -> List[str]:
         return self.generate_response(instructions)
+    
+    def generate_with_fix(self, instructions: List[str]) -> List[str]:
+        responses = self.generate_response(instructions)
+        for idx, response in enumerate(responses):
+            if self.REPLACEMENT_CHAR in response:
+                responses[idx] = self.FAILURE_RESPONSE
+        return responses

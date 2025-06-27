@@ -67,8 +67,8 @@ def get_deepseek_llm(max_tokens: int, timeout: int, max_retries: int, temperatur
     """
     DeepSeek LLM을 초기화합니다.
     """
-    print(f"Loading DeepSeek LLM with temperature: {temperature}, top_p: {top_p}, max_tokens: {max_tokens}, timeout: {timeout}, max_retries: {max_retries}...")
     if temperature == 0:
+        print(f"Loading DeepSeek LLM for evolution...")
         llm = ChatDeepSeek(
             model="deepseek-chat",
             temperature = 0,
@@ -77,6 +77,7 @@ def get_deepseek_llm(max_tokens: int, timeout: int, max_retries: int, temperatur
             max_retries = max_retries,
         )
     else:
+        print(f"Loading DeepSeek LLM for optimization...")
         llm = ChatDeepSeek(
             model="deepseek-chat",
             temperature = temperature,

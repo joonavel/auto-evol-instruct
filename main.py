@@ -1,4 +1,4 @@
-import os, argparse, sys
+import argparse
 from dotenv import load_dotenv
 from auto_evol import AutoEvolInstruct
 import logging
@@ -58,7 +58,12 @@ def get_config():
         default=5,
         help="Number of optimizatied methods.(m in the paper)",
     )
-    
+    parser.add_argument(
+        "--test-run",
+        type=int,
+        default=0,
+        help="Test run or not.",
+    )
     parser.add_argument(
         "--evol-llm-config",
         type=str,
@@ -98,4 +103,4 @@ if __name__ == "__main__":
     # AutoEvolInstruct 실행
     auto_evol = AutoEvolInstruct(config)
     evolved_method = auto_evol.run_auto_evol(config.max_steps)
-    # auto_evol.run_evol_instruct(evolved_method)
+    auto_evol.run_evol_instruct(evolved_method, test_run=config.test_run)

@@ -64,7 +64,7 @@ class AutoEvolInstruct:
         # 각 candidate method에 대해서 instruction evolving을 진행하고, 그 결과를 2차원 리스트로 저장
         dev_instructions_2d = []
         for method in candidate_methods:
-            dev_output = evolver.evolve_train(method)
+            dev_output = evolver.evolve_once(method)
             dev_instructions_2d.append(dev_output)
         
         # Instruction에 대한 답변을 생성할 llm
@@ -83,6 +83,10 @@ class AutoEvolInstruct:
             scores.append(score)
         # 오류율이 최저인 candidate method를 선택하여 return
         return candidate_methods[scores.index(min(scores))]
+    
+    def save_evolution_result(self, instructions: List[str], responses: List[str]):
+        with open("evolution_result.json", "w") as f:
+            json.dump({"instructions": instructions, "responses": responses}, f)
         
     def run_auto_evol(self, max_step):
         train_dataset, dev_dataset = self.load_data_for_auto_evol()
@@ -114,12 +118,31 @@ class AutoEvolInstruct:
             logging.info(f"Step {step} : Best Method : \n{best_method}\n")
         return self.current_method
     
-    def run_evol_instruct(self, method: str):
+    def run_evol_instruct(self, method: str, test_run: bool = False):
         instruction_dataset = self.load_data_for_instruction_evolution()
+        if test_run:
+            flag = 10
+        else:
+            flag = None
+        instructions = instruction_dataset[:flag]
+        instruction_size = len(instructions)
         # Instruction Evolution
-        
-        # Response Generation
-        
-        # Post-processing
-        
+        evolver = InstructionEvolver(
+            llm=get_deepseek_llm(temperature=0, max_tokens=4096, timeout=120, max_retries=2),
+            dataset=instructions,
+            ds_size=instruction_size,
+            loop=None,
+            batch_size=self.config.batch_size,
+        )
+        child_instructions = evolver.evolve_once(method)
+        # Response Generation with Post-processing
+        responser = ResponseGenerator(
+            llm=get_deepseek_llm(temperature=0, max_tokens=4096, timeout=120, max_retries=2),
+            ds_size=instruction_size,
+            batch_size=self.config.batch_size,
+        )
+        responses = responser.generate_with_fix(child_instructions)
         # Saving
+        self.save_evolution_result(child_instructions, responses)
+        logging.info(f"Evolution Result has been saved.")
+        return

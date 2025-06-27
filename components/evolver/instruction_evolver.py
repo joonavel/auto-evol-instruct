@@ -148,7 +148,7 @@ class InstructionEvolver(BaseEvolver):
         else:
             return self._iterative_evolve(current_method)
         
-    def evolve_train(self, current_method: str):
+    def evolve_once(self, current_method: str) -> List[str]:
         evolver = self.llm.with_structured_output(IterativeEvolution)
         prompt = ChatPromptTemplate(
             [
