@@ -9,4 +9,5 @@ python main.py\
     --max-step 3\
     --loop 3\
     --candidate-size 5\
-    --test-run 0
+    --test-run 0\
+    --save-path evolution_result.json

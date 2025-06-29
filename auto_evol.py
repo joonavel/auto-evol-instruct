@@ -20,6 +20,7 @@ class AutoEvolInstruct:
             seed=config.seed,
         )
         self.current_method = None
+        self.save_path = config.save_path
         
     def load_data_for_auto_evol(self) -> Tuple[Dataset, Dataset]:
         train_dataset, dev_dataset = self.data_loader.get_train_and_dev()
@@ -85,8 +86,8 @@ class AutoEvolInstruct:
         # 오류율이 최저인 candidate method를 선택하여 return
         return candidate_methods[scores.index(min(scores))]
     
-    def save_evolution_result(self, parent_dataset, instructions: List[str], responses: List[str]):
-        with open("evolution_result.json", "w") as f:
+    def save_evolution_result(self, parent_dataset, instructions: List[str], responses: List[str], save_path: str = "evolution_result.json"):
+        with open(save_path, "w") as f:
             json.dump({"instruction": instructions,
                        "response": responses,
                        "root": parent_dataset["instruction"],
@@ -150,6 +151,6 @@ class AutoEvolInstruct:
         )
         responses = responser.generate_with_fix(child_instructions)
         # Saving
-        self.save_evolution_result(instruction_dataset, child_instructions, responses)
+        self.save_evolution_result(instruction_dataset, child_instructions, responses, self.save_path)
         logging.info(f"Evolution Result has been saved.")
         return

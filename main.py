@@ -65,13 +65,18 @@ def get_config():
         help="Test run or not.",
     )
     parser.add_argument(
+        "--save-path",
+        type=str,
+        default="evolution_result.json",
+        help="Path to save the evolution result.",
+    )
+    parser.add_argument(
         "--evol-llm-config",
         type=str,
         default="temperature=0 top_p=0 max_tokens=4096 timeout=120 max_retries=2",
         nargs="+",
         help="Configuration for the evolving LLM.",
     )
-    
     parser.add_argument(
         "--optim-llm-config",
         type=str,
