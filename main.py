@@ -3,9 +3,11 @@ from dotenv import load_dotenv
 from auto_evol import AutoEvolInstruct
 import logging
 
+
 def parse_key_value(item):
-    key, value = item.split('=', 1)
-    return {key:value}
+    key, value = item.split("=", 1)
+    return {key: value}
+
 
 def get_config():
     parser = argparse.ArgumentParser()
@@ -84,13 +86,13 @@ def get_config():
         nargs="+",
         help="Configuration for the optimizing LLM.",
     )
-    
+
     return parser.parse_args()
 
 
 if __name__ == "__main__":
     load_dotenv()
-    
+
     # LLM Config 파싱
     config = get_config()
     evol_llm_config = {}
@@ -101,7 +103,7 @@ if __name__ == "__main__":
         optim_llm_config.update(parse_key_value(item))
     config.evol_llm_config = evol_llm_config
     config.optim_llm_config = optim_llm_config
-    
+
     # logging 설정
     logging.basicConfig(filename="evol_log.log", filemode="w", level=logging.INFO)
 

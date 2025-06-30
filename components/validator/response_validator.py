@@ -1,12 +1,13 @@
 from .base_validator import BaseValidator
 from typing import List
 
+
 class ResponseValidator(BaseValidator):
     def __init__(self, ds_size):
         self.ds_size = ds_size
-        self.FAILURE_RESPONSE = 'IDK'
-        self.REPLACEMENT_CHAR = '\uFFFD'
-        
+        self.FAILURE_RESPONSE = "IDK"
+        self.REPLACEMENT_CHAR = "\ufffd"
+
     def validate(self, responses: List[str]) -> float:
         fail_count = 0
         for response in responses:
