@@ -1,6 +1,8 @@
 # auto-evol-instruct
 Auto Instruction Evolution는 LLM 파인튜닝에 사용되는 instruction의 complexity를 인간의 개입 없이 자동으로 향상시키는 프레임워크입니다.
 
+[English](./README.md) | [한국어](./README.ko.md)
+
 ## 주요 키워드
 - Method: Instruction의 복잡성을 높이기 위한 프롬프트
 - Trajectory: Metohd에 따라 진화된 instruction의 모든 단계
@@ -91,4 +93,42 @@ python main.py\
 스크립트는 결과를 지정한 출력 파일에 JSON 형식으로 저장합니다.
 
 아래 링크에서 본 프레임워크로 생성된 2K 크기의 데이터셋을 확인할 수 있습니다:
-(https://huggingface.co/datasets/joonavel/ko-auto-evol-instruct) 
+(https://huggingface.co/datasets/joonavel/ko-auto-evol-instruct)
+
+## Appendix
+
+### Is This Framework useful?
+이 레포의 방식으로 생성된 데이터가 실제로 유용한지 확인하기 위해서 Unsloth/Phi-4-bnb-4bit 모델에 다음 세가지 데이터셋을 활용한 fine-tuning을 진행하여 성능을 비교했습니다.
+
+1. LIMA 데이터셋을 한국어로 번역한 데이터셋(https://huggingface.co/datasets/taeshahn/ko-lima)
+2. Evol-Instruct 에서 생성한 데이터셋(https://huggingface.co/datasets/joonavel/ko-evol-instruct)
+3. 이 레포(Auto-Evol-Instruct)에서 생성한 데이터셋(https://huggingface.co/datasets/joonavel/ko-auto-evol-instruct)
+
+KMMLU 데이터셋을 활용하여 모델의 성능을 평가한 결과 이 레포에서 생성한 데이터셋을 활용한 모델은 LIMA 한국어 번역 데이터셋을 활용한 모델보다 더 높은 성능을 보였고 Evol-Instruct 데이터셋을 활용한 모델과 비교해 조금 낮은 성능을 보였습니다.
+
+base model: 0.468
+
+with kolima(epoch8): 0.494 https://huggingface.co/joonavel/Phi-4-kolima-adapter
+
+with koevol(epoch8): 0.499 https://huggingface.co/joonavel/Phi-4-koevol-adapter
+
+with koautoevol(epoch8): 0.497 https://huggingface.co/joonavel/Phi-4-koautoevol-adapter
+
+### Limitations
+Auto-Evol-Instruct 방식은 Evol-Instruct 방식과 비교해 다음 두가지 장점이 있습니다.
+1. 데이터의 유형에 따라 Evolving Prompt(Method)를 사람의 손으로 직접 만들어내지 않아도 됩니다.
+2. Seed Data 보존율이 높습니다.
+- koevol : Evolving 과정 평균 손실율 : 6.48%, Responsing 과정 평균 손실율 : 55%(1722 -> 922) (generation이 높아질 수록 크게 증가)
+- koautoevol : Evolving 과정 평균 손실율 : 0~1%, Responsing 과정 평균 손실율 : 3.5%(2117 -> 2042)
+
+이런 장점에도 불구하고 실제로 데이터셋을 사용하여 평가한 결과 Evol-Instruct 방식보다 KMMLU 평가 지표가 낮았던 이유를 추측해보면 다음과 같습니다.
+- Evol-Instruct 방식은 instruction의 complexity 뿐만 아니라 diversity를 증가시켜주는 프롬프트가 같이 사용되었다.
+- 반면 Auto-Evol-Instruct 방식은 diversity를 증가시켜주는 과정이 명시되지 않아 최종 결과 데이터 셋의 diversity가 부족했다.
+-> 학습 데이터셋의 diversity 부족으로인한 성능 차이
+
+이 외에도 성능에 부정적인 영향를 끼칠 수 있는 요인들로 가능한 것들은 다음과 같습니다.
+1. Method Optimization 결과의 부적합성
+2. Evolving 과정에서 instruction의 품질 저하
+3. LLM이 instruction에 대한 적절한 답변을 생성하지 못함
+
+이 요소들이 정말로 파인튜닝에 부정적인 영향을 끼쳤는지 확인하기 위해 추가적인 실험이 필요합니다.
