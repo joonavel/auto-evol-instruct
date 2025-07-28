@@ -35,13 +35,14 @@ class IterativeEvolution(BaseModel):
 
 
 class InstructionEvolver(BaseEvolver):
-    def __init__(self, llm, dataset, ds_size, loop, batch_size):
+    def __init__(self, llm, dataset, ds_size, loop, batch_size, instruction_field):
         super().__init__()
         self.llm = llm
         self.dataset = dataset
         self.ds_size = ds_size
         self.loop = loop
         self.batch_size = batch_size
+        self.instruction_field = instruction_field
         self.system_prompt = load_prompt_template(
             "components/evolver/prompts/system_prompt.prompt"
         )
@@ -93,9 +94,9 @@ class InstructionEvolver(BaseEvolver):
         ):
             # 마지막 배치 처리
             if k + self.batch_size > self.ds_size:
-                instructions = self.dataset["instruction"][k:]
+                instructions = self.dataset[self.instruction_field][k:]
             else:
-                instructions = self.dataset["instruction"][k : k + self.batch_size]
+                instructions = self.dataset[self.instruction_field][k : k + self.batch_size]
 
             # 배치 입력 생성
             batch_input = [{"instruction": instruction} for instruction in instructions]
@@ -139,9 +140,9 @@ class InstructionEvolver(BaseEvolver):
         ):
             # 마지막 배치 처리
             if k + self.batch_size > self.ds_size:
-                instructions = self.dataset["instruction"][k:]
+                instructions = self.dataset[self.instruction_field][k:]
             else:
-                instructions = self.dataset["instruction"][k : k + self.batch_size]
+                instructions = self.dataset[self.instruction_field][k : k + self.batch_size]
 
             # 배치 입력 생성
             batch_input = [
@@ -198,9 +199,9 @@ class InstructionEvolver(BaseEvolver):
             range(0, self.ds_size, self.batch_size), desc="Instruction Evolving..."
         ):
             if k + self.batch_size > self.ds_size:
-                instructions = self.dataset["instruction"][k:]
+                instructions = self.dataset[self.instruction_field][k:]
             else:
-                instructions = self.dataset["instruction"][k : k + self.batch_size]
+                instructions = self.dataset[self.instruction_field][k : k + self.batch_size]
             batch_input = [
                 {"steps": current_method, "instruction": instruction}
                 for instruction in instructions

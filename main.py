@@ -11,13 +11,28 @@ def parse_key_value(item):
 
 def get_config():
     parser = argparse.ArgumentParser()
+    
+    parser.add_argument(
+        "--is-local-data",
+        type=int,
+        default=0,
+        help="Whether to use local data(json with its orient is 'records').",
+    )
 
     parser.add_argument(
         "--data-path",
         type=str,
         default="beomi/KoAlpaca-v1.1a",
-        help="Path to the hf dataset.",
+        help="if is-local-data is 1, path to the local data. else, path to the hf dataset.",
     )
+    
+    parser.add_argument(
+        "--instruction-field",
+        type=str,
+        default="instruction",
+        help="field name of instruction in the data.",
+    )
+    
     parser.add_argument(
         "--train-size",
         type=int,

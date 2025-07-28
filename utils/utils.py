@@ -1,6 +1,7 @@
 from datasets import load_dataset, Dataset
 from langchain_deepseek import ChatDeepSeek
 from typing import Tuple
+import os, json
 
 
 class CustomDataLoader:
@@ -8,7 +9,7 @@ class CustomDataLoader:
     데이터셋을 로드하고, 셔플하며, train/dev 셋으로 분리하는 역할을 담당합니다.
     """
 
-    def __init__(self, data_path: str, train_size: int, dev_size: int, seed: int):
+    def __init__(self, data_path: str, train_size: int, dev_size: int, seed: int, is_local_data: int, instruction_field: str):
         """
         DataLoader를 초기화합니다.
 
@@ -22,7 +23,8 @@ class CustomDataLoader:
         self.train_size = train_size
         self.dev_size = dev_size
         self.seed = seed
-
+        self.is_local_data = is_local_data
+        self.instruction_field = instruction_field
     def get_train_and_dev(self) -> Tuple[Dataset, Dataset]:
         """
         데이터셋을 로드하고, 셔플하며, train/dev 셋으로 분리합니다.
@@ -34,7 +36,15 @@ class CustomDataLoader:
             tuple: (train_dataset, dev_dataset)
         """
         print(f"Loading dataset from {self.data_path}...")
-        dataset = load_dataset(self.data_path, split="train")
+        if self.is_local_data:
+            dataset = load_dataset("json", data_files=self.data_path)
+            dataset = dataset["train"]
+        else:
+            dataset = load_dataset(self.data_path, split="train")
+            
+        if self.instruction_field not in dataset.column_names:
+            raise ValueError(f"Submitted instruction field [{self.instruction_field}] not found in the dataset.")
+        
         dataset = dataset.shuffle(seed=self.seed)
         train_ds = dataset.select(range(self.train_size))
         if self.train_size + self.dev_size > len(dataset):
@@ -50,7 +60,12 @@ class CustomDataLoader:
         최적화된 method로 evolving 하기 위한 데이터셋을 준비합니다.
         """
         print(f"Loading dataset from {self.data_path}...")
-        dataset = load_dataset(self.data_path, split="train")
+        if self.is_local_data:
+            dataset = load_dataset("json", data_files=self.data_path)
+            dataset = dataset["train"]
+        else:
+            dataset = load_dataset(self.data_path, split="train")
+        
         return dataset
 
 

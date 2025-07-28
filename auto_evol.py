@@ -19,6 +19,8 @@ class AutoEvolInstruct:
             train_size=config.train_size,
             dev_size=config.dev_size,
             seed=config.seed,
+            is_local_data=config.is_local_data,
+            instruction_field=config.instruction_field,
         )
         self.current_method = None
         self.save_path = config.save_path
@@ -30,7 +32,7 @@ class AutoEvolInstruct:
     def load_data_for_instruction_evolution(self) -> Dataset:
         instruction_dataset = self.data_loader.get_instruction_data()
         return instruction_dataset
-
+    
     def evolve_instruction(
         self, train_dataset, is_initial=True, current_method: Optional[str] = None
     ) -> List[List[str]]:
@@ -39,6 +41,7 @@ class AutoEvolInstruct:
                 temperature=0, max_tokens=4096, timeout=120, max_retries=2
             ),
             dataset=train_dataset,
+            instruction_field=self.config.instruction_field,
             ds_size=self.config.train_size,
             loop=self.config.loop,
             batch_size=self.config.batch_size,
@@ -74,6 +77,7 @@ class AutoEvolInstruct:
             ds_size=self.config.dev_size,
             loop=self.config.loop,
             batch_size=self.config.batch_size,
+            instruction_field=self.config.instruction_field,
         )
         # 각 candidate method에 대해서 instruction evolving을 진행하고, 그 결과를 2차원 리스트로 저장
         dev_instructions_2d = []
@@ -183,6 +187,7 @@ class AutoEvolInstruct:
             ds_size=instruction_size,
             loop=None,
             batch_size=self.config.batch_size,
+            instruction_field=self.config.instruction_field,
         )
         child_instructions = evolver.evolve_once(method)
         # Response Generation with Post-processing
